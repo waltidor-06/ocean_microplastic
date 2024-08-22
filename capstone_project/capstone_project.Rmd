@@ -1,0 +1,65 @@
+---
+title: "Microplastics Capstone"
+author: "Wigensky Altidor"
+date: "2024-08-19"
+output: html_document
+---
+
+##Microplastic Case Study \*This case study was based on the data extracted from <https://experience.arcgis.com/experience/b296879cc1984fda833a8acc93e31476>. Collection sites varied in many different locations around the world. The data was aggregated by NOAA.
+
+\*The data represents plastic collections which were made starting back in \*\*1972-2022, but collections were not performed every year.
+
+\*Plastic collection used various different methods. Some using nets, bare hands of the individuals collecting the plastic, as well as special tubes, and pumps. ###Packages used for this project.
+
+```{r loading packages}
+
+library(tidyverse)
+library(ggplot2)
+library(maps)
+library(lubridate)
+library(tidyr)
+library(rmarkdown)
+install.packages("maps")
+install.packages(c("foreign", "MASS", "nlme", "openssl", "rmarkdown", "survival", "xfun"))
+```
+
+```{r Ensuring this project is in the right directory}
+setwd("~/Documents/capstone_project") 
+```
+
+```{r Assigning a function that reads the dataset}
+micro_plastics<-read_csv("marine_microplastics.csv")
+```
+
+```{r assignining a valuee to the variable df }
+df<-micro_plastics
+```
+
+### A visual with a map to show locations of plastic collection sites globally.
+
+```{r plotting the data to show data points; a facet wrap was applied to give this less of a cluttered look}
+ggplot() + 
+  geom_map( 
+  data = mapdata, map = mapdata, 
+  aes(long, lat, map_id = region)) +
+  geom_point(data = micro_plastics, aes(Longitude, Latitude, color = `Density Range`, size = `Measurement`))+
+  facet_wrap(~Oceans)
+```
+
+\*The facet wrap makes it somewhat easier to view areas with the most collection sites. \### Percentage of plastic collected by Ocean
+
+```{r calculating percentage of plastic collected by Ocean}
+plastic_percentage<-micro_plastics %>% 
+   group_by(Oceans) %>%
+  filter(any(Unit == "pieces/m3", na.rm = TRUE)) %>% 
+   summarise(percentage = n() / nrow(micro_plastics) * 100)
+```
+
+*I specifically chose to find out of all the collections performed (from 1972-2022) and the percentages of the collections measured in general.* I then filtered the results for only the measurements in pieces/m3 which was the most widely used Unit I observed in the database.
+
+```{r visual representing collections performed ond each Ocean}
+ggplot(data = plastic_percentage, aes(x=Oceans, y=percentage))+
+         geom_bar(stat = "identity")
+```
+
+\*I plan on expanding on this data set overtime and polishing it. Although I did have functions code for the sum of total measurements, as aforementioned the measurements were taken in different units and this data set contained null values randomly throughout, so I omitted including those.
